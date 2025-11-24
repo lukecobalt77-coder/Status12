@@ -8,6 +8,7 @@ import { createServer as createViteServer, createLogger } from "vite";
 
 import viteConfig from "../vite.config";
 import runApp from "./app";
+import { startDiscordBot } from "./discord-bot";
 
 export async function setupVite(app: Express, server: Server) {
   const viteLogger = createLogger();
@@ -56,6 +57,9 @@ export async function setupVite(app: Express, server: Server) {
       next(e);
     }
   });
+  
+  // Start Discord bot
+  await startDiscordBot();
 }
 
 (async () => {
