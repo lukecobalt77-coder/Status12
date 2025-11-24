@@ -3,6 +3,7 @@ import { Client, GatewayIntentBits, Events, EmbedBuilder, SlashCommandBuilder, R
 // Configuration constants
 const SUPPORT_SERVER_ID = '1441548471906734173';
 const HEARTBEAT_CHANNEL_ID = '1442653565427646495';
+const STATUS_CHANNEL_ID = '1442640832325746728';
 const HEARTBEAT_INTERVAL_MS = 8 * 60 * 1000; // 8 minutes
 const OFFLINE_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -10,11 +11,13 @@ const OFFLINE_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
 interface HeartbeatStatus {
   lastHeartbeatTimestamp: number | null;
   isOnline: boolean;
+  previousOnlineState: boolean | null;
 }
 
 const heartbeatStatus: HeartbeatStatus = {
   lastHeartbeatTimestamp: null,
   isOnline: false,
+  previousOnlineState: null,
 };
 
 // Helper function to format time difference in human-readable format
@@ -56,14 +59,51 @@ function getNextExpectedTime(lastHeartbeat: number): string {
 }
 
 // Update online/offline status based on last heartbeat
-function updateStatus() {
+async function updateStatus(client: Client) {
   if (heartbeatStatus.lastHeartbeatTimestamp === null) {
     heartbeatStatus.isOnline = false;
     return;
   }
 
   const timeSinceLastHeartbeat = Date.now() - heartbeatStatus.lastHeartbeatTimestamp;
-  heartbeatStatus.isOnline = timeSinceLastHeartbeat < OFFLINE_THRESHOLD_MS;
+  const newOnlineState = timeSinceLastHeartbeat < OFFLINE_THRESHOLD_MS;
+  
+  // Detect status change
+  if (heartbeatStatus.previousOnlineState !== null && heartbeatStatus.isOnline !== newOnlineState) {
+    // Status changed! Post to status channel
+    try {
+      const statusChannel = await client.channels.fetch(STATUS_CHANNEL_ID);
+      
+      if (statusChannel?.isTextBased() && 'send' in statusChannel) {
+        const embed = new EmbedBuilder()
+          .setTimestamp()
+          .setFooter({ text: 'EverLink Monitoring Bot' });
+        
+        if (newOnlineState) {
+          // Coming back online
+          embed
+            .setColor(0x57F287) // Green
+            .setTitle('✅ EverLink is now ONLINE')
+            .setDescription('EverLink heartbeat has been restored.');
+        } else {
+          // Going offline
+          const timeAgo = formatTimeDifference(timeSinceLastHeartbeat);
+          embed
+            .setColor(0xED4245) // Red
+            .setTitle('❌ EverLink is now OFFLINE')
+            .setDescription(`No heartbeat received for 15+ minutes.\nLast heartbeat: ${timeAgo}`);
+        }
+        
+        await statusChannel.send({ embeds: [embed] });
+        console.log(`📢 Posted status change: ${newOnlineState ? 'ONLINE' : 'OFFLINE'}`);
+      }
+    } catch (error) {
+      console.error('❌ Error posting to status channel:', error);
+    }
+  }
+  
+  heartbeatStatus.previousOnlineState = heartbeatStatus.isOnline;
+  heartbeatStatus.isOnline = newOnlineState;
 }
 
 export async function startDiscordBot() {
@@ -112,7 +152,7 @@ export async function startDiscordBot() {
 
     // Start periodic status check
     setInterval(() => {
-      updateStatus();
+      updateStatus(client);
     }, 30000); // Check every 30 seconds
   });
 
@@ -146,7 +186,7 @@ export async function startDiscordBot() {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'status') {
-      updateStatus();
+      await updateStatus(client);
 
       const embed = new EmbedBuilder()
         .setTitle('EverLink Monitor Status')

@@ -15,12 +15,15 @@ This bot monitors a specific Discord channel for EverLink heartbeat messages (se
   - Implemented /status slash command
   - Added heartbeat detection and tracking
   - Set up online/offline status reporting
+  - Added automatic status change notifications to status channel (1442640832325746728)
+  - Bot now posts embeds when EverLink goes online/offline
 
 ## Bot Configuration
 
-### Monitored Server & Channel
+### Monitored Server & Channels
 - **Support Server ID**: `1441548471906734173`
-- **Heartbeat Channel ID**: `1442653565427646495`
+- **Heartbeat Channel ID**: `1442653565427646495` (where EverLink sends heartbeats)
+- **Status Channel ID**: `1442640832325746728` (where bot posts status updates)
 
 ### Detection Parameters
 - **Heartbeat Interval**: Every 8 minutes
@@ -29,6 +32,11 @@ This bot monitors a specific Discord channel for EverLink heartbeat messages (se
 
 ### Commands
 - `/status` - Shows EverLink's current online/offline status, last heartbeat time, and next expected heartbeat
+
+### Automatic Status Updates
+The bot automatically posts status change notifications to the status channel when:
+- **EverLink goes OFFLINE**: Posts a red embed when no heartbeat is received for 15+ minutes
+- **EverLink comes back ONLINE**: Posts a green embed when heartbeat is restored
 
 ## Project Architecture
 
