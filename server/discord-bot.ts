@@ -75,23 +75,28 @@ async function updateStatus(client: Client) {
       const statusChannel = await client.channels.fetch(STATUS_CHANNEL_ID);
       
       if (statusChannel?.isTextBased() && 'send' in statusChannel) {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+        
         const embed = new EmbedBuilder()
+          .setTitle('EverLink Status')
           .setTimestamp()
-          .setFooter({ text: 'EverLink Monitoring Bot' });
+          .setFooter({ text: `EverLink | Today at ${timeString}` });
         
         if (newOnlineState) {
           // Coming back online
           embed
             .setColor(0x57F287) // Green
-            .setTitle('✅ EverLink is now ONLINE')
-            .setDescription('EverLink heartbeat has been restored.');
+            .setDescription('System is operational');
         } else {
           // Going offline
-          const timeAgo = formatTimeDifference(timeSinceLastHeartbeat);
           embed
             .setColor(0xED4245) // Red
-            .setTitle('❌ EverLink is now OFFLINE')
-            .setDescription(`No heartbeat received for 15+ minutes.\nLast heartbeat: ${timeAgo}`);
+            .setDescription('System is offline');
         }
         
         await statusChannel.send({ embeds: [embed] });
