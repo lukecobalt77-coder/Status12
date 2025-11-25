@@ -1,4 +1,5 @@
 import { Client, GatewayIntentBits, Events, EmbedBuilder, SlashCommandBuilder, REST, Routes } from 'discord.js';
+import { setBotReady } from './routes';
 
 // Configuration constants
 const SUPPORT_SERVER_ID = '1441548471906734173';
@@ -148,6 +149,9 @@ export async function startDiscordBot() {
       
       console.log('✅ Slash commands registered successfully');
       console.log(`👀 Monitoring channel ${HEARTBEAT_CHANNEL_ID} for EverLink heartbeats...`);
+      
+      // Mark bot as ready for health checks
+      setBotReady(true);
     } catch (error) {
       console.error('❌ Error registering slash commands:', error);
     }

@@ -35,8 +35,16 @@ This bot monitors a specific Discord channel for EverLink heartbeat messages (se
 
 ### Automatic Status Updates
 The bot automatically posts status change notifications to the status channel when:
-- **EverLink goes OFFLINE**: Posts a red embed when no heartbeat is received for 15+ minutes
+- **EverLink goes OFFLINE**: Posts a red embed when no heartbeat is received for 10+ minutes
 - **EverLink comes back ONLINE**: Posts a green embed when heartbeat is restored
+
+### Health Check Endpoint (UptimeRobot Compatible)
+- **Endpoint**: `/health`
+- **Method**: GET
+- **Description**: Returns bot health status for monitoring with UptimeRobot or similar services
+- **Response**: 
+  - `200 OK`: Bot is healthy and connected
+  - `503 Service Unavailable`: Bot is starting up
 
 ## Project Architecture
 
