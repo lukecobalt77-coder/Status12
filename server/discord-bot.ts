@@ -168,6 +168,8 @@ export async function startDiscordBot() {
       return;
     }
 
+    console.log(`📨 Message received in heartbeat channel from ${message.author.username}. Embeds: ${message.embeds.length}`);
+
     // Check if message has embeds
     if (message.embeds.length === 0) {
       return;
@@ -175,10 +177,12 @@ export async function startDiscordBot() {
 
     // Look for EverLink heartbeat embed
     for (const embed of message.embeds) {
-      if (embed.title?.includes('EverLink Heartbeat')) {
+      console.log(`📌 Checking embed title: "${embed.title}"`);
+      if (embed.title && embed.title.includes('EverLink Heartbeat')) {
         const timestamp = Date.now();
         heartbeatStatus.lastHeartbeatTimestamp = timestamp;
         heartbeatStatus.isOnline = true;
+        heartbeatStatus.previousOnlineState = false; // Force status update on first heartbeat
         
         console.log(`💚 EverLink heartbeat detected at ${new Date(timestamp).toISOString()}`);
         break;
