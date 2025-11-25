@@ -11,13 +11,11 @@ const OFFLINE_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
 interface HeartbeatStatus {
   lastHeartbeatTimestamp: number | null;
   isOnline: boolean;
-  previousOnlineState: boolean | null;
 }
 
 const heartbeatStatus: HeartbeatStatus = {
   lastHeartbeatTimestamp: null,
   isOnline: false,
-  previousOnlineState: null,
 };
 
 // Helper function to format time difference in human-readable format
@@ -69,7 +67,7 @@ async function updateStatus(client: Client) {
   const newOnlineState = timeSinceLastHeartbeat < OFFLINE_THRESHOLD_MS;
   
   // Detect status change
-  if (heartbeatStatus.previousOnlineState !== null && heartbeatStatus.isOnline !== newOnlineState) {
+  if (heartbeatStatus.isOnline !== newOnlineState) {
     // Status changed! Post to status channel
     try {
       const statusChannel = await client.channels.fetch(STATUS_CHANNEL_ID);
@@ -107,7 +105,6 @@ async function updateStatus(client: Client) {
     }
   }
   
-  heartbeatStatus.previousOnlineState = heartbeatStatus.isOnline;
   heartbeatStatus.isOnline = newOnlineState;
 }
 
