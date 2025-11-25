@@ -181,10 +181,9 @@ export async function startDiscordBot() {
       if (embed.title && embed.title.includes('EverLink Status')) {
         const timestamp = Date.now();
         heartbeatStatus.lastHeartbeatTimestamp = timestamp;
-        heartbeatStatus.isOnline = true;
-        heartbeatStatus.previousOnlineState = false; // Force status update on first heartbeat
         
         console.log(`💚 EverLink heartbeat detected at ${new Date(timestamp).toISOString()}`);
+        await updateStatus(client);
         break;
       }
     }
