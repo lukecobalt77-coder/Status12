@@ -12,11 +12,13 @@ const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 interface HeartbeatStatus {
   lastHeartbeatTimestamp: number | null;
   isOnline: boolean;
+  statusMessageId: string | null;
 }
 
 const heartbeatStatus: HeartbeatStatus = {
   lastHeartbeatTimestamp: null,
   isOnline: false,
+  statusMessageId: null,
 };
 
 // Helper function to format time difference in human-readable format
@@ -69,7 +71,7 @@ async function updateStatus(client: Client) {
   
   // Detect status change
   if (heartbeatStatus.isOnline !== newOnlineState) {
-    // Status changed! Post to status channel
+    // Status changed! Update or post to status channel
     try {
       const statusChannel = await client.channels.fetch(STATUS_CHANNEL_ID);
       
@@ -98,11 +100,27 @@ async function updateStatus(client: Client) {
             .setDescription('System is offline');
         }
         
-        await statusChannel.send({ embeds: [embed] });
-        console.log(`📢 Posted status change: ${newOnlineState ? 'ONLINE' : 'OFFLINE'}`);
+        // Try to edit existing message, or create a new one
+        if (heartbeatStatus.statusMessageId) {
+          try {
+            const message = await statusChannel.messages.fetch(heartbeatStatus.statusMessageId);
+            await message.edit({ embeds: [embed] });
+            console.log(`📝 Updated status message: ${newOnlineState ? 'ONLINE' : 'OFFLINE'}`);
+          } catch (error) {
+            // Message doesn't exist, post a new one
+            const newMessage = await statusChannel.send({ embeds: [embed] });
+            heartbeatStatus.statusMessageId = newMessage.id;
+            console.log(`📢 Posted new status message: ${newOnlineState ? 'ONLINE' : 'OFFLINE'}`);
+          }
+        } else {
+          // First status message
+          const newMessage = await statusChannel.send({ embeds: [embed] });
+          heartbeatStatus.statusMessageId = newMessage.id;
+          console.log(`📢 Posted initial status message: ${newOnlineState ? 'ONLINE' : 'OFFLINE'}`);
+        }
       }
     } catch (error) {
-      console.error('❌ Error posting to status channel:', error);
+      console.error('❌ Error updating status channel:', error);
     }
   }
   

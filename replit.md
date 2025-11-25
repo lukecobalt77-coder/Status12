@@ -10,13 +10,18 @@ This bot monitors a specific Discord channel for EverLink heartbeat messages (se
 ✅ **ACTIVE** - Bot is deployed and monitoring
 
 ## Recent Changes
+- **2025-11-25**: Production deployment and UI improvements
+  - Fixed production deployment (bot now starts in background)
+  - Added /health endpoint for UptimeRobot monitoring
+  - Implemented dynamic status message updating (edits same message instead of creating new ones)
+  - Added simple health status web page for Koyeb deployment
 - **2024-11-24**: Initial bot implementation
   - Created Discord bot with message monitoring
   - Implemented /status slash command
   - Added heartbeat detection and tracking
   - Set up online/offline status reporting
   - Added automatic status change notifications to status channel (1442640832325746728)
-  - Bot now posts embeds when EverLink goes online/offline
+  - Bot now edits existing embed when EverLink goes online/offline
 
 ## Bot Configuration
 
