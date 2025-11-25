@@ -59,6 +59,58 @@ function getNextExpectedTime(lastHeartbeat: number): string {
   }
 }
 
+// Post/update status message in status channel
+async function postStatusMessage(client: Client, isOnline: boolean) {
+  try {
+    const statusChannel = await client.channels.fetch(STATUS_CHANNEL_ID);
+    
+    if (statusChannel?.isTextBased() && 'send' in statusChannel) {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+      
+      const embed = new EmbedBuilder()
+        .setTitle('EverLink Status')
+        .setTimestamp()
+        .setFooter({ text: `EverLink | Today at ${timeString}` });
+      
+      if (isOnline) {
+        embed
+          .setColor(0x57F287) // Green
+          .setDescription('System is operational');
+      } else {
+        embed
+          .setColor(0xED4245) // Red
+          .setDescription('System is offline');
+      }
+      
+      // Try to edit existing message, or create a new one
+      if (heartbeatStatus.statusMessageId) {
+        try {
+          const message = await statusChannel.messages.fetch(heartbeatStatus.statusMessageId);
+          await message.edit({ embeds: [embed] });
+          console.log(`📝 Updated status message: ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
+        } catch (error) {
+          // Message doesn't exist, post a new one
+          const newMessage = await statusChannel.send({ embeds: [embed] });
+          heartbeatStatus.statusMessageId = newMessage.id;
+          console.log(`📢 Posted new status message: ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
+        }
+      } else {
+        // First status message
+        const newMessage = await statusChannel.send({ embeds: [embed] });
+        heartbeatStatus.statusMessageId = newMessage.id;
+        console.log(`📢 Posted initial status message: ${isOnline ? 'ONLINE' : 'OFFLINE'}`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error updating status channel:', error);
+  }
+}
+
 // Update online/offline status based on last heartbeat
 async function updateStatus(client: Client) {
   if (heartbeatStatus.lastHeartbeatTimestamp === null) {
@@ -71,57 +123,8 @@ async function updateStatus(client: Client) {
   
   // Detect status change
   if (heartbeatStatus.isOnline !== newOnlineState) {
-    // Status changed! Update or post to status channel
-    try {
-      const statusChannel = await client.channels.fetch(STATUS_CHANNEL_ID);
-      
-      if (statusChannel?.isTextBased() && 'send' in statusChannel) {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString('en-US', { 
-          hour: 'numeric', 
-          minute: '2-digit',
-          hour12: true 
-        });
-        
-        const embed = new EmbedBuilder()
-          .setTitle('EverLink Status')
-          .setTimestamp()
-          .setFooter({ text: `EverLink | Today at ${timeString}` });
-        
-        if (newOnlineState) {
-          // Coming back online
-          embed
-            .setColor(0x57F287) // Green
-            .setDescription('System is operational');
-        } else {
-          // Going offline
-          embed
-            .setColor(0xED4245) // Red
-            .setDescription('System is offline');
-        }
-        
-        // Try to edit existing message, or create a new one
-        if (heartbeatStatus.statusMessageId) {
-          try {
-            const message = await statusChannel.messages.fetch(heartbeatStatus.statusMessageId);
-            await message.edit({ embeds: [embed] });
-            console.log(`📝 Updated status message: ${newOnlineState ? 'ONLINE' : 'OFFLINE'}`);
-          } catch (error) {
-            // Message doesn't exist, post a new one
-            const newMessage = await statusChannel.send({ embeds: [embed] });
-            heartbeatStatus.statusMessageId = newMessage.id;
-            console.log(`📢 Posted new status message: ${newOnlineState ? 'ONLINE' : 'OFFLINE'}`);
-          }
-        } else {
-          // First status message
-          const newMessage = await statusChannel.send({ embeds: [embed] });
-          heartbeatStatus.statusMessageId = newMessage.id;
-          console.log(`📢 Posted initial status message: ${newOnlineState ? 'ONLINE' : 'OFFLINE'}`);
-        }
-      }
-    } catch (error) {
-      console.error('❌ Error updating status channel:', error);
-    }
+    // Status changed! Update message
+    await postStatusMessage(client, newOnlineState);
   }
   
   heartbeatStatus.isOnline = newOnlineState;
@@ -203,6 +206,8 @@ export async function startDiscordBot() {
         
         console.log(`💚 EverLink heartbeat detected at ${new Date(timestamp).toISOString()}`);
         await updateStatus(client);
+        // Always update message to refresh timestamp
+        await postStatusMessage(client, true);
         break;
       }
     }
