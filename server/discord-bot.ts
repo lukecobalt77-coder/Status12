@@ -163,31 +163,29 @@ export async function startDiscordBot() {
       try {
         console.log(`🔍 Fetching status channel ${STATUS_CHANNEL_ID}...`);
         const statusChannel = await readyClient.channels.fetch(STATUS_CHANNEL_ID);
-        console.log(`✓ Channel found: ${statusChannel?.name || 'unknown'}`);
         
-        if (statusChannel?.isTextBased() && 'messages' in statusChannel) {
-          console.log(`📋 Fetching messages from status channel...`);
-          const messages = await statusChannel.messages.fetch({ limit: 100 });
-          console.log(`Found ${messages.size} message(s)`);
-          
-          if (messages.size > 0) {
-            console.log(`🧹 Cleaning up ${messages.size} old message(s) from status channel ${STATUS_CHANNEL_ID}...`);
-            const msgArray = Array.from(messages.values());
-            for (const msg of msgArray) {
-              try {
-                console.log(`  - Deleting message ${msg.id}...`);
-                await msg.delete();
-                console.log(`  ✓ Deleted`);
-              } catch (delError) {
-                console.error(`  ✗ Failed to delete message ${msg.id}:`, delError);
-              }
-            }
-            console.log('✅ Status channel cleaned');
-          } else {
-            console.log('ℹ️ No messages to clean up');
-          }
+        if (!statusChannel) {
+          console.log('⚠️ Status channel not found');
+        } else if (!('bulkDelete' in statusChannel)) {
+          console.log('⚠️ Status channel does not support bulk delete (not a text channel)');
         } else {
-          console.log('⚠️ Status channel is not text-based');
+          console.log(`✓ Status channel found`);
+          console.log(`📋 Fetching messages from status channel...`);
+          
+          try {
+            const messages = await statusChannel.messages.fetch({ limit: 100 });
+            console.log(`Found ${messages.size} message(s)`);
+            
+            if (messages.size > 0) {
+              console.log(`🧹 Deleting ${messages.size} old message(s)...`);
+              const result = await statusChannel.bulkDelete(messages);
+              console.log(`✅ Successfully deleted ${result.size} messages`);
+            } else {
+              console.log('ℹ️ No messages to clean up');
+            }
+          } catch (fetchError) {
+            console.error('❌ Error fetching or deleting messages:', fetchError);
+          }
         }
       } catch (error) {
         console.error('❌ Error cleaning status channel:', error);
