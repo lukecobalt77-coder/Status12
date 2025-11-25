@@ -5,7 +5,7 @@ const SUPPORT_SERVER_ID = '1441548471906734173';
 const HEARTBEAT_CHANNEL_ID = '1442653565427646495';
 const STATUS_CHANNEL_ID = '1442640832325746728';
 const HEARTBEAT_INTERVAL_MS = 8 * 60 * 1000; // 8 minutes
-const OFFLINE_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
+const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 
 // In-memory storage for heartbeat status
 interface HeartbeatStatus {

@@ -27,7 +27,7 @@ This bot monitors a specific Discord channel for EverLink heartbeat messages (se
 
 ### Detection Parameters
 - **Heartbeat Interval**: Every 8 minutes
-- **Offline Threshold**: 15+ minutes without heartbeat
+- **Offline Threshold**: 10+ minutes without heartbeat
 - **Heartbeat Format**: Discord embed with title containing "EverLink Status"
 
 ### Commands
