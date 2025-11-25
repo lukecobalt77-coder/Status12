@@ -159,6 +159,23 @@ export async function startDiscordBot() {
     console.log(`✅ Discord bot logged in as ${readyClient.user.tag}`);
     
     try {
+      // Clean up old messages in status channel on startup
+      try {
+        const statusChannel = await readyClient.channels.fetch(STATUS_CHANNEL_ID);
+        if (statusChannel?.isTextBased() && 'messages' in statusChannel) {
+          const messages = await statusChannel.messages.fetch({ limit: 100 });
+          if (messages.size > 0) {
+            console.log(`🧹 Cleaning up ${messages.size} old message(s) from status channel...`);
+            messages.forEach(async (msg) => {
+              await msg.delete();
+            });
+            console.log('✅ Status channel cleaned');
+          }
+        }
+      } catch (error) {
+        console.error('⚠️ Error cleaning status channel:', error);
+      }
+      
       const rest = new REST().setToken(token);
       
       console.log('🔄 Registering slash commands...');
