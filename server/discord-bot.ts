@@ -178,7 +178,7 @@ export async function startDiscordBot() {
     // Look for EverLink heartbeat embed
     for (const embed of message.embeds) {
       console.log(`📌 Checking embed title: "${embed.title}"`);
-      if (embed.title && embed.title.includes('EverLink Heartbeat')) {
+      if (embed.title && embed.title.includes('EverLink Status')) {
         const timestamp = Date.now();
         heartbeatStatus.lastHeartbeatTimestamp = timestamp;
         heartbeatStatus.isOnline = true;

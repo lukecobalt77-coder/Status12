@@ -28,7 +28,7 @@ This bot monitors a specific Discord channel for EverLink heartbeat messages (se
 ### Detection Parameters
 - **Heartbeat Interval**: Every 8 minutes
 - **Offline Threshold**: 15+ minutes without heartbeat
-- **Heartbeat Format**: Discord embed with title containing "EverLink Heartbeat"
+- **Heartbeat Format**: Discord embed with title containing "EverLink Status"
 
 ### Commands
 - `/status` - Shows EverLink's current online/offline status, last heartbeat time, and next expected heartbeat
@@ -56,7 +56,7 @@ design_guidelines.md    # Discord message formatting guidelines
 #### Discord Bot (`server/discord-bot.ts`)
 - **Client Setup**: Uses Gateway Intents for Guilds, GuildMessages, and MessageContent
 - **Heartbeat Tracking**: In-memory storage for last heartbeat timestamp and online status
-- **Message Monitoring**: Listens to all messages in the heartbeat channel, detects embeds with "EverLink Heartbeat" title
+- **Message Monitoring**: Listens to all messages in the heartbeat channel, detects embeds with "EverLink Status" title
 - **Status Updates**: Periodic checks (every 30 seconds) to update online/offline status
 - **Slash Commands**: Registered globally, returns formatted embeds with status information
 
