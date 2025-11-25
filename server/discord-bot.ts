@@ -166,9 +166,14 @@ export async function startDiscordBot() {
           const messages = await statusChannel.messages.fetch({ limit: 100 });
           if (messages.size > 0) {
             console.log(`🧹 Cleaning up ${messages.size} old message(s) from status channel...`);
-            messages.forEach(async (msg) => {
-              await msg.delete();
-            });
+            const msgArray = Array.from(messages.values());
+            for (const msg of msgArray) {
+              try {
+                await msg.delete();
+              } catch (delError) {
+                console.error(`⚠️ Failed to delete message:`, delError);
+              }
+            }
             console.log('✅ Status channel cleaned');
           }
         }
