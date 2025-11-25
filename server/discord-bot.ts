@@ -161,24 +161,36 @@ export async function startDiscordBot() {
     try {
       // Clean up old messages in status channel on startup
       try {
+        console.log(`🔍 Fetching status channel ${STATUS_CHANNEL_ID}...`);
         const statusChannel = await readyClient.channels.fetch(STATUS_CHANNEL_ID);
+        console.log(`✓ Channel found: ${statusChannel?.name || 'unknown'}`);
+        
         if (statusChannel?.isTextBased() && 'messages' in statusChannel) {
+          console.log(`📋 Fetching messages from status channel...`);
           const messages = await statusChannel.messages.fetch({ limit: 100 });
+          console.log(`Found ${messages.size} message(s)`);
+          
           if (messages.size > 0) {
-            console.log(`🧹 Cleaning up ${messages.size} old message(s) from status channel...`);
+            console.log(`🧹 Cleaning up ${messages.size} old message(s) from status channel ${STATUS_CHANNEL_ID}...`);
             const msgArray = Array.from(messages.values());
             for (const msg of msgArray) {
               try {
+                console.log(`  - Deleting message ${msg.id}...`);
                 await msg.delete();
+                console.log(`  ✓ Deleted`);
               } catch (delError) {
-                console.error(`⚠️ Failed to delete message:`, delError);
+                console.error(`  ✗ Failed to delete message ${msg.id}:`, delError);
               }
             }
             console.log('✅ Status channel cleaned');
+          } else {
+            console.log('ℹ️ No messages to clean up');
           }
+        } else {
+          console.log('⚠️ Status channel is not text-based');
         }
       } catch (error) {
-        console.error('⚠️ Error cleaning status channel:', error);
+        console.error('❌ Error cleaning status channel:', error);
       }
       
       const rest = new REST().setToken(token);
