@@ -125,9 +125,11 @@ async function updateStatus(client: Client) {
   if (heartbeatStatus.isOnline !== newOnlineState) {
     // Status changed! Update message
     await postStatusMessage(client, newOnlineState);
+    heartbeatStatus.isOnline = newOnlineState;
+  } else if (newOnlineState && timeSinceLastHeartbeat < 1000) {
+    // Fresh heartbeat detected while already online - update timestamp
+    await postStatusMessage(client, true);
   }
-  
-  heartbeatStatus.isOnline = newOnlineState;
 }
 
 export async function startDiscordBot() {
@@ -238,8 +240,6 @@ export async function startDiscordBot() {
         
         console.log(`💚 EverLink heartbeat detected at ${new Date(timestamp).toISOString()}`);
         await updateStatus(client);
-        // Always update message to refresh timestamp
-        await postStatusMessage(client, true);
         break;
       }
     }
