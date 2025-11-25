@@ -124,11 +124,9 @@ async function updateStatus(client: Client) {
   // Detect status change
   if (heartbeatStatus.isOnline !== newOnlineState) {
     // Status changed! Update message
+    console.log(`🔄 Status changed: ${heartbeatStatus.isOnline} -> ${newOnlineState}`);
     await postStatusMessage(client, newOnlineState);
     heartbeatStatus.isOnline = newOnlineState;
-  } else if (newOnlineState && timeSinceLastHeartbeat < 1000) {
-    // Fresh heartbeat detected while already online - update timestamp
-    await postStatusMessage(client, true);
   }
 }
 
