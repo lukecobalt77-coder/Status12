@@ -21,6 +21,9 @@ const heartbeatStatus: HeartbeatStatus = {
   statusMessageId: null,
 };
 
+// Keep track of the last keep-alive message
+let lastKeepAliveMessageId: string | null = null;
+
 // Helper function to format time difference in human-readable format
 function formatTimeDifference(milliseconds: number): string {
   const seconds = Math.floor(milliseconds / 1000);
@@ -214,18 +217,41 @@ export async function startDiscordBot() {
       updateStatus(client);
     }, 30000); // Check every 30 seconds
 
-    // Send keep-alive message every 150 seconds
-    setInterval(async () => {
+    // Send keep-alive message every 150 seconds (with deletion 10 seconds before)
+    async function sendKeepAlive() {
       try {
         const heartbeatChannel = await readyClient.channels.fetch(HEARTBEAT_CHANNEL_ID);
         if (heartbeatChannel?.isTextBased() && 'send' in heartbeatChannel) {
-          await heartbeatChannel.send('keep alive');
+          const msg = await heartbeatChannel.send('keep alive');
+          lastKeepAliveMessageId = msg.id;
           console.log('📤 Sent keep-alive message');
         }
       } catch (error) {
         console.error('❌ Error sending keep-alive message:', error);
       }
-    }, 150000); // Every 150 seconds
+      // Schedule deletion 140 seconds from now
+      setTimeout(deleteKeepAlive, 140000);
+    }
+
+    async function deleteKeepAlive() {
+      if (lastKeepAliveMessageId) {
+        try {
+          const heartbeatChannel = await readyClient.channels.fetch(HEARTBEAT_CHANNEL_ID);
+          if (heartbeatChannel?.isTextBased() && 'messages' in heartbeatChannel) {
+            const message = await heartbeatChannel.messages.fetch(lastKeepAliveMessageId);
+            await message.delete();
+            console.log('🗑️ Deleted previous keep-alive message');
+          }
+        } catch (error) {
+          console.error('❌ Error deleting keep-alive message:', error);
+        }
+      }
+      // Schedule next send 10 seconds from now
+      setTimeout(sendKeepAlive, 10000);
+    }
+
+    // Start the keep-alive cycle
+    sendKeepAlive();
   });
 
   // Listen for messages to detect heartbeat
