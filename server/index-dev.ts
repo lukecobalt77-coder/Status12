@@ -58,8 +58,10 @@ export async function setupVite(app: Express, server: Server) {
     }
   });
   
-  // Start Discord bot
-  await startDiscordBot();
+  // Start Discord bot in background (don't wait for it)
+  startDiscordBot().catch(err => {
+    console.error('❌ Discord bot failed to start:', err);
+  });
 }
 
 (async () => {
