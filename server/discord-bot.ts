@@ -213,6 +213,19 @@ export async function startDiscordBot() {
     setInterval(() => {
       updateStatus(client);
     }, 30000); // Check every 30 seconds
+
+    // Send keep-alive message every 150 seconds
+    setInterval(async () => {
+      try {
+        const heartbeatChannel = await readyClient.channels.fetch(HEARTBEAT_CHANNEL_ID);
+        if (heartbeatChannel?.isTextBased() && 'send' in heartbeatChannel) {
+          await heartbeatChannel.send('keep alive');
+          console.log('📤 Sent keep-alive message');
+        }
+      } catch (error) {
+        console.error('❌ Error sending keep-alive message:', error);
+      }
+    }, 150000); // Every 150 seconds
   });
 
   // Listen for messages to detect heartbeat
