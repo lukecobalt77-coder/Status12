@@ -217,7 +217,7 @@ export async function startDiscordBot() {
       updateStatus(client);
     }, 30000); // Check every 30 seconds
 
-    // Send keep-alive message every 150 seconds (with deletion 10 seconds before)
+    // Send keep-alive message every 60 minutes (with deletion 10 seconds before)
     async function sendKeepAlive() {
       try {
         const heartbeatChannel = await readyClient.channels.fetch(HEARTBEAT_CHANNEL_ID);
@@ -229,8 +229,8 @@ export async function startDiscordBot() {
       } catch (error) {
         console.error('❌ Error sending keep-alive message:', error);
       }
-      // Schedule deletion 140 seconds from now
-      setTimeout(deleteKeepAlive, 140000);
+      // Schedule deletion 3590 seconds from now (10 seconds before next 60-minute cycle)
+      setTimeout(deleteKeepAlive, 3590000);
     }
 
     async function deleteKeepAlive() {
